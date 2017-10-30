@@ -1,11 +1,9 @@
 package basic
 
-import com.excilys.ebi.gatling.core.Predef._
-import com.excilys.ebi.gatling.http.Predef._
-import com.excilys.ebi.gatling.jdbc.Predef._
-import com.excilys.ebi.gatling.http.Headers.Names._
-import akka.util.duration._
-import bootstrap._
+import io.gatling.core.Predef._
+import io.gatling.http.Predef._
+import io.gatling.jdbc.Predef._
+import scala.concurrent.duration._
 
 class SpringBootOneSimulation extends Simulation {
 
@@ -15,13 +13,13 @@ class SpringBootOneSimulation extends Simulation {
   val minWaitMs      = 1000 milliseconds
   val maxWaitMs      = 3000 milliseconds
 
-  val baseURL      = "http://localhost:9090"
+  val baseURL      = "http://localhost:9091"
   val baseName     = "spring-boot-one"
   val requestName  = baseName + "-request"
   val scenarioName = baseName + "-scenario"
-  val URI          = "/process?minMs=500&maxMs=1000"
+  val URI          = "/process-blocking?minMs=500&maxMs=1000"
 
-  val httpConf = httpConfig.baseURL(baseURL)
+  val httpConf = http.baseURL(baseURL)
 
   val http_headers = Map(
     "Accept-Encoding" -> "gzip,deflate",
@@ -38,5 +36,7 @@ class SpringBootOneSimulation extends Simulation {
       )
       .pause(minWaitMs, maxWaitMs)
     }
-  setUp(scn.users(noOfUsers).ramp(rampUpTimeSecs).protocolConfig(httpConf))
+  setUp(scn.inject(
+  	nothingFor(rampUpTimeSecs), atOnceUsers(noOfUsers))
+  ).protocols(httpConf) 
 }
